@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <link rel="stylesheet" href="static/js/theme/default/style.css" type="text/css">
+    <link rel="stylesheet" href="static/css/style.css" type="text/css">
+    <script src="static/js/OpenLayers.js"></script>
+    <script src="data/utrechtspoor.js"></script>
+    <script type="text/javascript">
+        var lon = 5;
+        var lat = 52.1;
+        var zoom = 7;
+        var map, layer;
+
+        function init(){
+            map = new OpenLayers.Map( 'map' );
+            layer = new OpenLayers.Layer.WMS( "OpenLayers WMS", 
+                    "http://vmap0.tiles.osgeo.org/wms/vmap0",
+                    {layers: 'basic'} );
+            //layer = new OpenLayers.Layer.OSM( "Simple OSM Map");
+            map.addLayer(layer);
+            map.setCenter(new OpenLayers.LonLat(lon, lat), zoom);
+            baseProjection = layer.projection; 
+            wgs84 = new OpenLayers.Projection('EPSG:4326');
+
+
+            var geojson_format = new OpenLayers.Format.GeoJSON({
+                    'externalProjection': wgs84,
+                    'internalProjection': baseProjection});
+            var vector_layer = new OpenLayers.Layer.Vector(); 
+            map.addLayer(vector_layer);
+            vector_layer.addFeatures(geojson_format.read(spoor));
+
+        }
+    </script>
+  </head>
+  <body onload="init()">
+    <h1 id="title">Zombie Outbreak Apocalypse</h1>
+    
+      <p id="shortdesc">
+        Get the Zombies out!
+    </p>
+    <div id="map" class="smallmap"></div>
+  </body>
+</html>
