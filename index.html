@@ -8,23 +8,22 @@
     <link rel="stylesheet" href="static/css/style.css" type="text/css">
     <script src="static/js/OpenLayers.js"></script>
     <script src="data/utrechtspoor.js"></script>
+    <script type="text/javascript" src="http://maps.stamen.com/js/tile.stamen.js?v1.1.2"></script>
     <script type="text/javascript">
-        var lon = 5;
-        var lat = 52.1;
         var zoom = 7;
         var map, layer;
 
         function init(){
             map = new OpenLayers.Map( 'map' );
-            layer = new OpenLayers.Layer.WMS( "OpenLayers WMS", 
-                    "http://vmap0.tiles.osgeo.org/wms/vmap0",
-                    {layers: 'basic'} );
-            //layer = new OpenLayers.Layer.OSM( "Simple OSM Map");
-            map.addLayer(layer);
-            map.setCenter(new OpenLayers.LonLat(lon, lat), zoom);
-            baseProjection = layer.projection; 
-            wgs84 = new OpenLayers.Projection('EPSG:4326');
 
+            // replace "toner" here with "terrain" or "watercolor"
+            var baselayer = new OpenLayers.Layer.Stamen("toner");
+            //var baselayer = new OpenLayers.Layer.Stamen("watercolor");
+            //var baselayer = new OpenLayers.Layer.Stamen("terrain");
+            map.addLayer(baselayer);
+
+            baseProjection = baselayer.projection; 
+            wgs84 = new OpenLayers.Projection('EPSG:4326');
 
             var geojson_format = new OpenLayers.Format.GeoJSON({
                     'externalProjection': wgs84,
@@ -32,6 +31,7 @@
             var vector_layer = new OpenLayers.Layer.Vector(); 
             map.addLayer(vector_layer);
             vector_layer.addFeatures(geojson_format.read(spoor));
+            map.zoomToExtent(vector_layer.getDataExtent());
 
         }
     </script>
