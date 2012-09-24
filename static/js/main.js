@@ -25,20 +25,17 @@ function init(){
     var geojson_format = new OpenLayers.Format.GeoJSON({
             'externalProjection': wgs84,
             'internalProjection': baseProjection});
-    var geojson_format_rd = new OpenLayers.Format.GeoJSON({
-            'externalProjection': newRD,
-            'internalProjection': baseProjection});
-    var vector_layer = new OpenLayers.Layer.Vector(); 
-    map.addLayer(vector_layer);
+    //var vector_layer = new OpenLayers.Layer.Vector(); 
     //vector_layer.addFeatures(geojson_format.read(spoor));
+    //map.addLayer(vector_layer);
 
-    var stations = new OpenLayers.Layer.Vector();
-    map.addLayer(stations);
-    stations.addFeatures(geojson_format_rd.read(stations));
+    var stations_layer = new OpenLayers.Layer.Vector();
+    stations_layer.addFeatures(geojson_format.read(stations));
+    map.addLayer(stations_layer);
 
     //map.addLayers([spoor_subset, stations]);
-    centermidden = new OpenLayers.LonLat(5.65, 52.30).transform(wgs84, sphericalMercator);
-    zoom = 9.5;
-    map.setCenter(centermidden, zoom);
-    //map.zoomToExtent(vector_layer.getDataExtent());
-}
+    //centermidden = new OpenLayers.LonLat(5.65, 52.30).transform(wgs84, sphericalMercator);
+    //zoom = 9.5;
+    //map.setCenter(centermidden, zoom);
+    map.zoomToExtent(stations_layer.getDataExtent());
+};

@@ -1,9 +1,9 @@
 /* 
  * Openlayers styles
  */
-.openlayersmap {
-    width : 900px;
-    height : 800px;
+.map {
+    width : 600px;
+    height : 700px;
 }
 
 #tags {
