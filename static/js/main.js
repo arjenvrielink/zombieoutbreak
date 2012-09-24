@@ -7,8 +7,6 @@ function init(){
     sphericalMercator = new OpenLayers.Projection('EPSG:900913'); // google
 
     var options = {
-       //maxExtent : bounds,
-       //restrictedExtent : bounds,
        projection : sphericalMercator,
        tileSize : new OpenLayers.Size(100, 100),
        units : "m",
@@ -27,13 +25,16 @@ function init(){
     var geojson_format = new OpenLayers.Format.GeoJSON({
             'externalProjection': wgs84,
             'internalProjection': baseProjection});
+    var geojson_format_rd = new OpenLayers.Format.GeoJSON({
+            'externalProjection': newRD,
+            'internalProjection': baseProjection});
     var vector_layer = new OpenLayers.Layer.Vector(); 
     map.addLayer(vector_layer);
-    vector_layer.addFeatures(geojson_format.read(spoor));
+    //vector_layer.addFeatures(geojson_format.read(spoor));
 
     var stations = new OpenLayers.Layer.Vector();
-    //map.addLayer(stations);
-    //stations.addFeatures(geojson_format.read(stations));
+    map.addLayer(stations);
+    stations.addFeatures(geojson_format_rd.read(stations));
 
     //map.addLayers([spoor_subset, stations]);
     centermidden = new OpenLayers.LonLat(5.65, 52.30).transform(wgs84, sphericalMercator);
