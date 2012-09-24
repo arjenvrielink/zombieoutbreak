@@ -4,17 +4,49 @@
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
     <meta name="apple-mobile-web-app-capable" content="yes">
+    <!-- bootstrap -->
+    <style type="text/css">
+        @import "static/css/bootstrap.min.css";
+        @import "static/css/extra.css";
+        @import "static/css/bootstrap-responsive.min.css";
+    </style>
+    <!-- nog een beetje bootstrap -->
+    <script type="text/javascript" src="static/js/bootstrap.min.js"></script>
+
+    <!-- Le HTML5 shim, for IE6-8 support of HTML5 elements -->
+    <!--[if lt IE 9]>
+    <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+
+    <!-- Le fav and touch icons -->
+    <link rel="shortcut icon" href="/favicon.ico">
+
     <link rel="stylesheet" href="static/js/theme/default/style.css" type="text/css">
     <link rel="stylesheet" href="static/css/style.css" type="text/css">
+
     <script src="static/js/OpenLayers.js"></script>
     <script src="data/utrechtspoor.js"></script>
+
     <script type="text/javascript" src="http://maps.stamen.com/js/tile.stamen.js?v1.1.2"></script>
+
     <script type="text/javascript">
         var zoom = 7;
         var map, layer;
 
         function init(){
-            map = new OpenLayers.Map( 'map' );
+            newRD = new OpenLayers.Projection('EPSG:28992'); // Nederland
+            wgs84 = new OpenLayers.Projection('EPSG:4326');
+            sphericalMercator = new OpenLayers.Projection('EPSG:900913'); // google
+
+            var options = {
+               //maxExtent : bounds,
+               //restrictedExtent : bounds,
+               projection : sphericalMercator,
+               tileSize : new OpenLayers.Size(100, 100),
+               units : "m",
+            };
+
+            map = new OpenLayers.Map( 'map', options );
 
             // replace "toner" here with "terrain" or "watercolor"
             var baselayer = new OpenLayers.Layer.Stamen("toner");
@@ -23,7 +55,6 @@
             map.addLayer(baselayer);
 
             baseProjection = baselayer.projection; 
-            wgs84 = new OpenLayers.Projection('EPSG:4326');
 
             var geojson_format = new OpenLayers.Format.GeoJSON({
                     'externalProjection': wgs84,
@@ -31,17 +62,34 @@
             var vector_layer = new OpenLayers.Layer.Vector(); 
             map.addLayer(vector_layer);
             vector_layer.addFeatures(geojson_format.read(spoor));
-            map.zoomToExtent(vector_layer.getDataExtent());
 
+            var stations = new OpenLayers.Layer.Vector();
+            //map.addLayer(stations);
+            //stations.addFeatures(geojson_format.read(stations));
+
+            //map.addLayers([spoor_subset, stations]);
+            centermidden = new OpenLayers.LonLat(5.65, 52.30).transform(wgs84, sphericalMercator);
+            zoom = 9.5;
+            map.setCenter(centermidden, zoom);
+            //map.zoomToExtent(vector_layer.getDataExtent());
         }
     </script>
   </head>
   <body onload="init()">
-    <h1 id="title">Zombie Outbreak Apocalypse</h1>
-    
-      <p id="shortdesc">
-        Get the Zombies out!
-    </p>
-    <div id="map" class="smallmap"></div>
+    <div class="container">
+        <div class="page-header">
+            <h1>They are out!</h1>
+        </div>
+        <div class="row">
+            <div class="span12">
+                <div id="featureinfo">----------------------</div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="span12">
+                <div id="map" class="map"></div>
+            </div>
+        </div>
+    </div>
   </body>
 </html>
