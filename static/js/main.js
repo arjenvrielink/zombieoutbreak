@@ -1,8 +1,8 @@
-var zoom = 7;
+var zoom = 9.5;
 var map, layer;
 
 function init(){
-    newRD = new OpenLayers.Projection('EPSG:28992'); // Nederland
+    //newRD = new OpenLayers.Projection('EPSG:28992'); // Nederland
     wgs84 = new OpenLayers.Projection('EPSG:4326');
     sphericalMercator = new OpenLayers.Projection('EPSG:900913'); // google
 
