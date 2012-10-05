@@ -51,7 +51,7 @@ function init(){
      */
 
     // bind mouseclick event to station layer and fire callback function
-    stationLayer.events.register('featureselected', this, drawCircle);
+    stationLayer.events.register('featureselected', this, getSelectedGeometry);
 
     /*
      * RAPHAEL SETUP
@@ -61,7 +61,6 @@ function init(){
     // get position of the map div relative to the viewport
     var mapoffset = $('#map').offset();
     var paper = Raphael(mapoffset.left, mapoffset.top, map.getSize().w, map.getSize().h);
-    //console.log(paper);
     paper.canvas.style.zIndex = "999"; // bring the Raphael canvas to the top so you can actually see what raphael is drawing for you
     paper.canvas.style.pointerEvents = "none"; // set pointerEvents to none so the OL layer remains clickable; that means OL is handling clickevents, passing them to Raphael
 
@@ -69,19 +68,35 @@ function init(){
      * THIS IS WHERE THE MAGIC HAPPENS
      */
 
-    // callback function for stationLayer clickevent
-    function drawCircle (e) {
+    // function to get a geometry from an event and pass it on
+    function getSelectedGeometry (e) {
         //console.log(e); // to check what is available in the event object: the feature, feature layer, should be xy but disabled by default in current OL
         var geometry = e.feature.geometry;
+        bombStation(geometry);
+        virusSpread(geometry);
+    }
+
+    // function that animates explosion at station position
+    function bombStation (geometry) {
         var centroid = geometry.getCentroid();
         var lonLat = new OpenLayers.LonLat(centroid.x, centroid.y);
         var xy = map.getPixelFromLonLat(lonLat);
-        //console.log(xy.x, xy.y);
 
         // en dan nu wat magische raphael shizzle
         // draw something cool at the station position
         var circle = paper.circle(xy.x, xy.y, 20);
         circle.attr("fill", "#f00");
         circle.attr("stroke", "#fff");
+    }
+
+    // function that finds the nearest stations and drops a zombiebomb
+    // from the set of nearest stations, randomly n - 1 are selected and a new outbreak is calculated
+    function virusSpread (geometry) {
+        console.log('virus spreading');
+        // find closest geometries in layer
+
+        var centroid = geometry.getCentroid();
+        var lonLat = new OpenLayers.LonLat(centroid.x, centroid.y);
+        var xy = map.getPixelFromLonLat(lonLat);
     }
 };
