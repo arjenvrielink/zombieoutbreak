@@ -8,7 +8,7 @@ function init(){
 
     var options = {
        projection : sphericalMercator,
-       tileSize : new OpenLayers.Size(100, 100),
+       tileSize : new OpenLayers.Size(256, 256),
        units : "m",
     };
 
