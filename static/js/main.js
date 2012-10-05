@@ -120,7 +120,7 @@ require(['jquery', 'bootstrap', 'openlayers', 'stamen', 'utrechtspoor', 'station
         searchBounds = new OpenLayers.Bounds(sourceBounds.left - searchRadius, sourceBounds.bottom - searchRadius, sourceBounds.right + searchRadius, sourceBounds.top + searchRadius);
 
         var targetFeatures = [];
-        infectedFeatures.push(feature); // list of features already infected, can be skipped
+        var infectedFeatures.push(feature); // list of features already infected, can be skipped
         for (i=0; i < feature.layer.features.length; i++) {
             targetFeature = feature.layer.features[i];
             // check if intersects and add to targetlist
