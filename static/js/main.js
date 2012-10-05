@@ -1,11 +1,26 @@
-var zoom = 7;
-var map, layer;
+requirejs.config({
+    paths: {
+        // libs
+        'jquery' : 'lib/jquery',
+        'bootstrap': 'lib/bootstrap',
+        'openlayers': 'lib/OpenLayers',
+        'raphael' : 'lib/raphael',
+        'stamen': 'http://maps.stamen.com/js/tile.stamen',
+        // data
+        'utrechtspoor' : 'data/utrechtspoor',
+        'stations' : 'data/stations'
+    }
+});
+//require(['jquery', 'bootstrap', 'openlayers', 'stamen', 'raphael'], function ($, Raphael) {
+require(['jquery', 'bootstrap', 'openlayers', 'stamen', 'utrechtspoor', 'stations'], function ($) {
 
-function init(){
-    
     /*
      * MAP SETUP
      */
+    
+    var zoom = 7;
+    var map, layer;
+
     wgs84 = new OpenLayers.Projection('EPSG:4326');
     sphericalMercator = new OpenLayers.Projection('EPSG:900913'); // google
 
@@ -18,6 +33,7 @@ function init(){
     map = new OpenLayers.Map( 'map', options );
 
     // replace "toner" here with "terrain" or "watercolor"
+    //var baseLayer = new OpenLayers.Layer.OSM();
     var baseLayer = new OpenLayers.Layer.Stamen("toner");
     //var baseLayer = new OpenLayers.Layer.Stamen("watercolor");
     //var baseLayer = new OpenLayers.Layer.Stamen("terrain");
@@ -99,4 +115,4 @@ function init(){
         var lonLat = new OpenLayers.LonLat(centroid.x, centroid.y);
         var xy = map.getPixelFromLonLat(lonLat);
     }
-};
+}); // close require()
