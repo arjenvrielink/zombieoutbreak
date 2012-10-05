@@ -4,7 +4,7 @@ requirejs.config({
         'jquery' : 'lib/jquery',
         'bootstrap': 'lib/bootstrap',
         'openlayers': 'lib/OpenLayers',
-        'raphael' : 'lib/raphael',
+        //'raphael' : 'lib/raphael', // werkt nog niet met requirejs
         'stamen': 'http://maps.stamen.com/js/tile.stamen',
         // data
         'utrechtspoor' : 'data/utrechtspoor',
