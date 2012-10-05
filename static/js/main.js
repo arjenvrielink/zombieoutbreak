@@ -62,8 +62,8 @@ function init(){
     var mapoffset = $('#map').offset();
     var paper = Raphael(mapoffset.left, mapoffset.top, map.getSize().w, map.getSize().h);
     //console.log(paper);
-    // maybe this also works?
-    //var paper = Raphael($('#map'), map.getSize().w, map.getSize().h);
+    paper.canvas.style.zIndex = "999"; // bring the Raphael canvas to the top so you can actually see what raphael is drawing for you
+    paper.canvas.style.pointerEvents = "none"; // set pointerEvents to none so the OL layer remains clickable; that means OL is handling clickevents, passing them to Raphael
 
     /*
      * THIS IS WHERE THE MAGIC HAPPENS
@@ -76,14 +76,12 @@ function init(){
         var centroid = geometry.getCentroid();
         var lonLat = new OpenLayers.LonLat(centroid.x, centroid.y);
         var xy = map.getPixelFromLonLat(lonLat);
-        console.log(xy.x, xy.y);
+        //console.log(xy.x, xy.y);
 
         // en dan nu wat magische raphael shizzle
         // draw something cool at the station position
         var circle = paper.circle(xy.x, xy.y, 20);
         circle.attr("fill", "#f00");
         circle.attr("stroke", "#fff");
-        //paper.canvas.style.zIndex = "999"; // this works but then the canvas is on top of the other layers not allowing clickthroughs
-        circle.node.style.zIndex = "999"; // this doesn't work because the canvas is still on top of it
     }
 };
