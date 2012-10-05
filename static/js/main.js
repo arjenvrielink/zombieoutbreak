@@ -114,7 +114,7 @@ require(['jquery', 'bootstrap', 'openlayers', 'stamen', 'utrechtspoor', 'station
         console.log('virus spreading');
         // find features within x km from source feature 
         // get bounds + 30 km and see which feature geometries from layer intersect
-        var searchRadius = 30000; // search Radius in m
+        var searchRadius = 50000; // search Radius in m
         var sourceBounds = feature.geometry.bounds;
         searchBounds = new OpenLayers.Bounds(sourceBounds.left - searchRadius, sourceBounds.bottom - searchRadius, sourceBounds.right + searchRadius, sourceBounds.top + searchRadius);
 
