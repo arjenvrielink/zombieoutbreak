@@ -93,14 +93,13 @@ require(['jquery', 'bootstrap', 'openlayers', 'stamen', 'utrechtspoor', 'station
     // function to get a geometry from an event and pass it on
     function getSelectedGeometry (e) {
         //console.log(e); // to check what is available in the event object: the feature, feature layer, should be xy but disabled by default in current OL
-        var geometry = e.feature.geometry;
-        bombStation(geometry);
+        bombStation(e.feature);
         virusSpread(e.feature);
     }
 
     // function that animates explosion at station position
-    function bombStation (geometry) {
-        var centroid = geometry.getCentroid();
+    function bombStation (feature) {
+        var centroid = feature.geometry.getCentroid();
         var lonLat = new OpenLayers.LonLat(centroid.x, centroid.y);
         var xy = map.getPixelFromLonLat(lonLat);
 
@@ -128,13 +127,28 @@ require(['jquery', 'bootstrap', 'openlayers', 'stamen', 'utrechtspoor', 'station
                 console.log('added target' + i + '; calculating distance');
                 //calculate distance to target
                 var distance = feature.geometry.distanceTo(targetFeature.geometry);
+                targetFeature.distanceToSource = distance;
                 console.log(distance + ' m');
                 targetFeatures.push(targetFeature);
             }
         }
+
+        if (targetFeatures.length == 1) { return; }
         console.log(targetFeatures.length + ' targets found; attacking');
 
         // loop over targets not yet infected; intersect targetFeatures array with infectedFeatures
+        //console.log(infectedFeatures.length);
+        for (var i = 0; i < targetFeatures.length; i += 1) {
+            targetFeature = targetFeatures[i];
+            if (infectedFeatures.indexOf(targetFeature)) {
+                (function (feature) {
+                    var delay = parseInt(feature.distanceToSource) / 10;
+                    setTimeout(function () {bombStation(feature)}, delay);
+                })(targetFeature);
+                //bombStation(targetFeature);
+                infectedFeatures.push(targetFeature);
+            }
+        }
 
         // if targetList = empty: return with 'all targets completed'
 
