@@ -6,9 +6,6 @@ function init(){
     /*
      * MAP SETUP
      */
-    
-    
-    newRD = new OpenLayers.Projection('EPSG:28992'); // Nederland
     wgs84 = new OpenLayers.Projection('EPSG:4326');
     sphericalMercator = new OpenLayers.Projection('EPSG:900913'); // google
 
@@ -38,13 +35,7 @@ function init(){
     var stationLayer = new OpenLayers.Layer.Vector();
     stationLayer.addFeatures(geojson_format.read(stations));
     map.addLayer(stationLayer);
-
-    //map.addLayers([spoor_subset, stations]);
-    //centermidden = new OpenLayers.LonLat(5.65, 52.30).transform(wgs84, sphericalMercator);
-    //zoom = 9.5;
-    //map.setCenter(centermidden, zoom);
     map.zoomToExtent(stationLayer.getDataExtent());
-
 
     /*
      * MAP CONTROLS
@@ -62,16 +53,37 @@ function init(){
     // bind mouseclick event to station layer and fire callback function
     stationLayer.events.register('featureselected', this, drawCircle);
 
+    /*
+     * RAPHAEL SETUP
+     */ 
+
+    // setup paper, top left corner hard coded
+    // get position of the map div relative to the viewport
+    var mapoffset = $('#map').offset();
+    var paper = Raphael(mapoffset.left, mapoffset.top, map.getSize().w, map.getSize().h);
+    //console.log(paper);
+    // maybe this also works?
+    //var paper = Raphael($('#map'), map.getSize().w, map.getSize().h);
+
+    /*
+     * THIS IS WHERE THE MAGIC HAPPENS
+     */
 
     // callback function for stationLayer clickevent
     function drawCircle (e) {
-        console.log(e);
+        //console.log(e); // to check what is available in the event object: the feature, feature layer, should be xy but disabled by default in current OL
         var geometry = e.feature.geometry;
         var centroid = geometry.getCentroid();
         var lonLat = new OpenLayers.LonLat(centroid.x, centroid.y);
         var xy = map.getPixelFromLonLat(lonLat);
-        alert(xy);
+        console.log(xy.x, xy.y);
 
         // en dan nu wat magische raphael shizzle
+        // draw something cool at the station position
+        var circle = paper.circle(xy.x, xy.y, 20);
+        circle.attr("fill", "#f00");
+        circle.attr("stroke", "#fff");
+        //paper.canvas.style.zIndex = "999"; // this works but then the canvas is on top of the other layers not allowing clickthroughs
+        circle.node.style.zIndex = "999"; // this doesn't work because the canvas is still on top of it
     }
 };
