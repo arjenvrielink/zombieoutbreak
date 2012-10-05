@@ -2,8 +2,12 @@
  * Openlayers styles
  */
 .map {
-    width : 600px;
-    height : 700px;
+    width : 768px;
+    height : 768px;
+}
+
+.map img {
+    max-width: none;    
 }
 
 #tags {
