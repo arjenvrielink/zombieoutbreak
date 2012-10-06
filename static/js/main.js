@@ -9,6 +9,14 @@ requirejs.config({
         // data
         'utrechtspoor' : 'data/utrechtspoor',
         'stations' : 'data/stations'
+    },
+    shim: {
+        'bootstrap' : {
+            'deps' : ['jquery']
+        },
+        'stamen' : {
+            'deps' : ['openlayers']
+        }
     }
 });
 //require(['jquery', 'bootstrap', 'openlayers', 'stamen', 'raphael'], function ($, Raphael) {
