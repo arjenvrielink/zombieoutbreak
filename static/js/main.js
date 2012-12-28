@@ -27,6 +27,8 @@ require(['jquery', 'bootstrap', 'openlayers', 'stamen', 'utrechtspoor', 'station
     /*
      * MAP SETUP
      */
+	
+	//_.each([1, 2, 3], alert);
 
     var map, layer, wgs84, sphericalMercator, options, baseLayer, baseProjection, geojson_format, stationLayer, selectStation, mapoffset, paper, infectedFeatures;
 
@@ -40,10 +42,12 @@ require(['jquery', 'bootstrap', 'openlayers', 'stamen', 'utrechtspoor', 'station
     };
 
     map = new OpenLayers.Map('map', options);
+    
+	map.getControlsByClass('OpenLayers.Control.Navigation')[0].disableZoomWheel();
 
     // replace "toner" here with "terrain" or "watercolor"
     //var baseLayer = new OpenLayers.Layer.OSM();
-    baseLayer = new OpenLayers.Layer.Stamen("toner");
+    var baseLayer = new OpenLayers.Layer.Stamen("toner");
     //var baseLayer = new OpenLayers.Layer.Stamen("watercolor");
     //var baseLayer = new OpenLayers.Layer.Stamen("terrain");
     map.addLayer(baseLayer);
@@ -54,11 +58,21 @@ require(['jquery', 'bootstrap', 'openlayers', 'stamen', 'utrechtspoor', 'station
         'externalProjection': wgs84,
         'internalProjection': baseProjection
     });
+    
     //var vector_layer = new OpenLayers.Layer.Vector(); 
     //vector_layer.addFeatures(geojson_format.read(spoor));
     //map.addLayer(vector_layer);
+    
+    var renderer = OpenLayers.Util.getParameters(window.location.href).renderer;
+	renderer = (renderer) ? [renderer] : OpenLayers.Layer.Vector.prototype.renderers;
 
-    stationLayer = new OpenLayers.Layer.Vector();
+    stationLayer = new OpenLayers.Layer.Vector('Points',{
+		styleMap: new OpenLayers.StyleMap({
+			pointRadius: "5", 
+			fillColor: "#00FF8C"
+		}),
+		renderers: renderer
+	});
     stationLayer.addFeatures(geojson_format.read(stations));
     map.addLayer(stationLayer);
     map.zoomToExtent(stationLayer.getDataExtent());
@@ -100,47 +114,87 @@ require(['jquery', 'bootstrap', 'openlayers', 'stamen', 'utrechtspoor', 'station
         // draw something cool at the station position
         circle = paper.circle(xy.x, xy.y, 10).animate({fill: "#f00", stroke: "#f99", "stroke-width": 10, "stroke-opacity": 0.6, opacity: 0.9}, 2500, "linear");
     }
+    
+    function connectStations(source,target) {
+    	var centroid, sourcelonLat, targetlonLat, sourceXy, targetXy, pathString, path;
+        centroid = source.geometry.getCentroid();
+        sourcelonLat = new OpenLayers.LonLat(centroid.x, centroid.y);
+        sourceXy = map.getPixelFromLonLat(sourcelonLat);
+        
+        centroid = target.geometry.getCentroid();
+        targetlonLat = new OpenLayers.LonLat(centroid.x, centroid.y);
+        targetXy = map.getPixelFromLonLat(targetlonLat);
+        
+        pathString = "M" + sourceXy.x + "," + sourceXy.y + "S" + ( targetXy.x + 20 ) + "," + ( targetXy.y + 20 ) + "," + targetXy.x + "," + targetXy.y;
+        path = paper.path(pathString).attr({stroke: "#ff0000"});
+       // path.animate({fill: "#f00", stroke: "#f99", "stroke-width": 10, "stroke-opacity": 0.6, opacity: 0.9}, 2500, "linear");
+        path.glow({width: 20, color: "#ff0000"});
+        //console.log(pathString);
+    	
+    }
 
     // function that finds the nearest stations and drops a zombiebomb
     // from the set of nearest stations, randomly n - 1 are selected and a new outbreak is calculated
-    function virusSpread(feature) {
-        var searchRadius, sourceBounds, searchBounds, targetFeatures, targetFeature;
+    var targetFeatures;
+    function virusSpread(sourceFeature) {
+        var searchRadius, sourceBounds, searchBounds, targetFeature;
         console.log('virus spreading');
         // find features within x km from source feature 
         // get bounds + 30 km and see which feature geometries from layer intersect
         searchRadius = 50000; // search Radius in m
-        sourceBounds = feature.geometry.bounds;
+        sourceBounds = sourceFeature.geometry.bounds;
         searchBounds = new OpenLayers.Bounds(sourceBounds.left - searchRadius, sourceBounds.bottom - searchRadius, sourceBounds.right + searchRadius, sourceBounds.top + searchRadius);
 
         targetFeatures = [];
-        infectedFeatures.push(feature); // list of features already infected, can be skipped
-        for (var i = 0; i < feature.layer.features.length; i += 1) {
-            targetFeature = feature.layer.features[i];
+        console.log(infectedFeatures);
+        infectedFeatures.push(sourceFeature); // list of features already infected, can be skipped
+        for (var i = 0; i < sourceFeature.layer.features.length; i += 1) {
+            targetFeature = sourceFeature.layer.features[i];
             // check if intersects and add to targetlist
             if (searchBounds.intersectsBounds(targetFeature.geometry.bounds)) {
                 console.log('added target' + i + '; calculating distance');
                 //calculate distance to target
-                targetFeature.distanceToSource = feature.geometry.distanceTo(targetFeature.geometry);
+                targetFeature.distanceToSource = sourceFeature.geometry.distanceTo(targetFeature.geometry);
                 targetFeatures.push(targetFeature);
             }
         }
 
         if (targetFeatures.length == 1) { return; }
+        //console.log(targetFeatures);
+        targetFeatures = _.sortBy(targetFeatures,"distanceToSource");
+        
         console.log(targetFeatures.length + ' targets found; attacking');
 
         // loop over targets not yet infected; intersect targetFeatures array with infectedFeatures
         //console.log(infectedFeatures.length);
         for (var i = 0; i < targetFeatures.length; i += 1) {
             targetFeature = targetFeatures[i];
-            if (infectedFeatures.indexOf(targetFeature)) {
+            if (!_.contains(infectedFeatures,targetFeature)) {
                 (function (feature) {
                     var delay = parseInt(feature.distanceToSource) / 10;
-                    setTimeout(function () {bombStation(feature)}, delay);
-                })(targetFeature);
+                    setTimeout(
+                    		function () {
+                    			bombStation(feature);
+                    			connectStations(sourceFeature,feature);
+                    			infectedFeatures.push(targetFeature);
+                    		}, delay);
+                    
+                })
+                
+                (targetFeature);
                 //bombStation(targetFeature);
-                infectedFeatures.push(targetFeature);
+                
+                
             }
         }
+        
+        var finalTarget = targetFeatures[targetFeatures.length - 1];
+        var delay = parseInt(finalTarget.distanceToSource) / 10;
+        setTimeout(
+        		function () {
+        			virusSpread(finalTarget);
+        		}, delay);
+        //
 
         // if targetList = empty: return with 'all targets completed'
 
