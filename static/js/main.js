@@ -186,10 +186,7 @@ require(['jquery', 'bootstrap', 'openlayers', 'stamen', 'utrechtspoor', 'station
         var sortedTargets = _.sortBy(targetFeatures, "distanceToSource");
         var newTarget = targetFeatures[sortedTargets[sortedTargets.length - 1].id];
         var delay = parseInt(newTarget.distanceToSource) / 10;
-        setTimeout(
-        		function () {
-        			virusSpread(newTarget);
-        		}, delay);
+        setTimeout(function () {virusSpread(newTarget);}, delay);
     }
 
     // function to get a geometry from an event and pass it on
