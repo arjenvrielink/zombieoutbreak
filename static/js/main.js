@@ -101,7 +101,7 @@ require(['jquery', 'bootstrap', 'openlayers', 'stamen', 'utrechtspoor', 'station
      */
 
     // ugly declaration of global vars
-    infectedFeatures = []; // array with stations already infected
+    infectedFeatures = {}; // array with stations already infected
 
     // function that animates explosion at station position
     function bombStation(feature) {
@@ -129,12 +129,10 @@ require(['jquery', 'bootstrap', 'openlayers', 'stamen', 'utrechtspoor', 'station
         path = paper.path(pathString).attr({stroke: "#ff0000"});
        // path.animate({fill: "#f00", stroke: "#f99", "stroke-width": 10, "stroke-opacity": 0.6, opacity: 0.9}, 2500, "linear");
         path.glow({width: 20, color: "#ff0000"});
-        //console.log(pathString);
     	
     }
 
     // function that finds the nearest stations and drops a zombiebomb
-    // from the set of nearest stations, randomly n - 1 are selected and a new outbreak is calculated
     var targetFeatures;
     function virusSpread(sourceFeature) {
         var searchRadius, sourceBounds, searchBounds, targetFeature;
@@ -145,64 +143,57 @@ require(['jquery', 'bootstrap', 'openlayers', 'stamen', 'utrechtspoor', 'station
         sourceBounds = sourceFeature.geometry.bounds;
         searchBounds = new OpenLayers.Bounds(sourceBounds.left - searchRadius, sourceBounds.bottom - searchRadius, sourceBounds.right + searchRadius, sourceBounds.top + searchRadius);
 
-        targetFeatures = [];
+        //targetFeatures = [];
+        targetFeatures = {};
         console.log(infectedFeatures);
-        infectedFeatures.push(sourceFeature); // list of features already infected, can be skipped
+        infectedFeatures[sourceFeature.id] = sourceFeature; // list of features already infected, can be skipped
         for (var i = 0; i < sourceFeature.layer.features.length; i += 1) {
             targetFeature = sourceFeature.layer.features[i];
             // check if intersects and add to targetlist
             if (searchBounds.intersectsBounds(targetFeature.geometry.bounds)) {
-                console.log('added target' + i + '; calculating distance');
-                //calculate distance to target
+                //console.log('added target' + i + '; calculating distance');
                 targetFeature.distanceToSource = sourceFeature.geometry.distanceTo(targetFeature.geometry);
-                targetFeatures.push(targetFeature);
+                targetFeatures[targetFeature.id] = targetFeature;
             }
         }
 
-        if (targetFeatures.length == 1) { return; }
-        //console.log(targetFeatures);
-        targetFeatures = _.sortBy(targetFeatures,"distanceToSource");
-        
-        console.log(targetFeatures.length + ' targets found; attacking');
+        console.log(_.size(targetFeatures));
+        targetFeatures = _.omit(targetFeatures, _.keys(infectedFeatures)) // throw away already infected features 
+
+        if (_.size(targetFeatures) == 1) { return; }
+        console.log(_.size(targetFeatures) + ' targets found; attacking');
 
         // loop over targets not yet infected; intersect targetFeatures array with infectedFeatures
-        //console.log(infectedFeatures.length);
-        for (var i = 0; i < targetFeatures.length; i += 1) {
+        console.log("Number of infected features: " +  _.size(infectedFeatures));
+        for (var i in targetFeatures) {
             targetFeature = targetFeatures[i];
-            if (!_.contains(infectedFeatures,targetFeature)) {
+            if (!_.contains(infectedFeatures, targetFeature)) {
                 (function (feature) {
                     var delay = parseInt(feature.distanceToSource) / 10;
                     setTimeout(
                     		function () {
-                    			bombStation(feature);
                     			connectStations(sourceFeature,feature);
-                    			infectedFeatures.push(targetFeature);
+                    			bombStation(feature);
+                    			infectedFeatures[feature.id] = feature;
                     		}, delay);
                     
                 })
-                
                 (targetFeature);
-                //bombStation(targetFeature);
-                
-                
             }
         }
         
-        var finalTarget = targetFeatures[targetFeatures.length - 1];
-        var delay = parseInt(finalTarget.distanceToSource) / 10;
+        // get target at biggest distance from source, make that the new source of infection
+        var sortedTargets = _.sortBy(targetFeatures, "distanceToSource");
+        var newTarget = targetFeatures[sortedTargets[sortedTargets.length - 1].id];
+        var delay = parseInt(newTarget.distanceToSource) / 10;
         setTimeout(
         		function () {
-        			virusSpread(finalTarget);
+        			virusSpread(newTarget);
         		}, delay);
-        //
-
-        // if targetList = empty: return with 'all targets completed'
-
     }
 
     // function to get a geometry from an event and pass it on
     function getSelectedGeometry(e) {
-        //console.log(e); // to check what is available in the event object: the feature, feature layer, should be xy but disabled by default in current OL
         bombStation(e.feature);
         virusSpread(e.feature);
     }
